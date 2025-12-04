@@ -259,7 +259,9 @@ if st.session_state.logged_in:
     st.sidebar.write(f"👤 Logged in as: **{st.session_state.username}**")
     if st.sidebar.button("Logout"):
         logout_user()
-        st.experimental_rerun()
+        st.session_state["rerun_flag"] = not st.session_state.get("rerun_flag", False)
+        st.experimental_set_query_params(dummy=datetime.now().timestamp())
+
 
 if page == "Home":
     st.subheader("Welcome")
@@ -293,7 +295,9 @@ elif page == "Login":
             ok, msg = login_user(username.strip(), password)
             if ok:
                 st.success(msg)
-                st.experimental_rerun()
+                st.session_state["rerun_flag"] = not st.session_state.get("rerun_flag", False)
+                st.experimental_set_query_params(dummy=datetime.now().timestamp())
+
             else:
                 st.error(msg)
 
@@ -453,7 +457,9 @@ elif page == "Admin Panel":
                     f.write(sfile.getbuffer())
                 st.success("Scaler file saved.")
             st.cache_resource.clear()
-            st.experimental_rerun()
+            st.session_state["rerun_flag"] = not st.session_state.get("rerun_flag", False)
+            st.experimental_set_query_params(dummy=datetime.now().timestamp())
+
 
         st.markdown("---")
         st.markdown("### Manage users")
@@ -469,7 +475,9 @@ elif page == "Admin Panel":
                 ok, msg = register_user(new_user.strip(), new_pass, new_role)
                 if ok:
                     st.success("User created")
-                    st.experimental_rerun()
+                    st.session_state["rerun_flag"] = not st.session_state.get("rerun_flag", False)
+                    st.experimental_set_query_params(dummy=datetime.now().timestamp())
+
                 else:
                     st.error(msg)
             else:
