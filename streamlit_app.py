@@ -89,8 +89,6 @@ if "logged_in" not in st.session_state:
     st.session_state.role = None
 
 def login_user(username, password):
-    if "current_page" not in st.session_state:
-        st.session_state.current_page = "Home"
     conn = get_db_conn()
     cur = conn.cursor()
     cur.execute("SELECT password_hash, role FROM users WHERE username=?", (username,))
@@ -102,9 +100,7 @@ def login_user(username, password):
             st.session_state.logged_in = True
             st.session_state.username = username
             st.session_state.role = role
-            st.session_state.current_page = "Home"
             return True, "Login successful"
-
     return False, "Invalid username or password"
 
 def logout_user():
@@ -245,27 +241,34 @@ a:hover {
 </style>
 """, unsafe_allow_html=True)
 
-
 st.sidebar.title("Navigation")
+
 if not st.session_state.logged_in:
     st.sidebar.info("🔐 Please login to access your dashboard")
-
-if not st.session_state.logged_in:
-    page = st.sidebar.selectbox("Menu", ["Home", "Login", "Register", "About"])
+    allowed_pages = ["Home", "Login", "Register", "About"]
 else:
     if st.session_state.role == "admin":
-        page = st.sidebar.selectbox("Menu", ["Home", "Single Prediction", "Bulk Prediction", "Dashboard (Analytics)", "Admin Panel", "About"])
+        allowed_pages = ["Home", "Single Prediction", "Bulk Prediction", "Dashboard (Analytics)", "Admin Panel", "About"]
     else:
-        page = st.sidebar.selectbox("Menu", ["Home", "Single Prediction", "Bulk Prediction", "Dashboard (Analytics)", "About"])
+        allowed_pages = ["Home", "Single Prediction", "Bulk Prediction", "Dashboard (Analytics)", "About"]
+
+e
+if "current_page" not in st.session_state:
+    st.session_state.current_page = "Home"
+
+page = st.sidebar.selectbox("Menu", allowed_pages, index=allowed_pages.index(st.session_state.current_page) if st.session_state.current_page in allowed_pages else 0)
+
+st.session_state.current_page = page
+
 
 st.sidebar.markdown("---")
 if st.session_state.logged_in:
     st.sidebar.write(f"👤 Logged in as: **{st.session_state.username}**")
     if st.sidebar.button("Logout"):
         logout_user()
+        st.session_state.current_page = "Home" 
         st.session_state["rerun_flag"] = not st.session_state.get("rerun_flag", False)
         st.experimental_set_query_params(dummy=datetime.now().timestamp())
-
 
 if page == "Home":
     st.subheader("Welcome")
@@ -299,11 +302,12 @@ elif page == "Login":
             ok, msg = login_user(username.strip(), password)
             if ok:
                 st.success(msg)
+                st.session_state.current_page = "Home"
                 st.session_state["rerun_flag"] = not st.session_state.get("rerun_flag", False)
                 st.experimental_set_query_params(dummy=datetime.now().timestamp())
-
             else:
                 st.error(msg)
+
 
 elif page == "Register":
     st.subheader("Create account")
@@ -318,9 +322,16 @@ elif page == "Register":
             else:
                 ok, m = register_user(new_user.strip(), new_pass)
                 if ok:
-                    st.success("Registration successful. You can login now.")
+                    st.success("Registration successful. You are now logged in.")
+                    st.session_state.logged_in = True
+                    st.session_state.username = new_user.strip()
+                    st.session_state.role = "user"
+                    st.session_state.current_page = "Home"  # Redirect to Home
+                    st.session_state["rerun_flag"] = not st.session_state.get("rerun_flag", False)
+                    st.experimental_set_query_params(dummy=datetime.now().timestamp())
                 else:
                     st.error(m)
+
 
 elif page == "Single Prediction":
     st.subheader("🧍 Single Prediction")
