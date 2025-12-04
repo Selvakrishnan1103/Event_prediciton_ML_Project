@@ -89,6 +89,8 @@ if "logged_in" not in st.session_state:
     st.session_state.role = None
 
 def login_user(username, password):
+    if "current_page" not in st.session_state:
+        st.session_state.current_page = "Home"
     conn = get_db_conn()
     cur = conn.cursor()
     cur.execute("SELECT password_hash, role FROM users WHERE username=?", (username,))
@@ -100,7 +102,9 @@ def login_user(username, password):
             st.session_state.logged_in = True
             st.session_state.username = username
             st.session_state.role = role
+            st.session_state.current_page = "Home"
             return True, "Login successful"
+
     return False, "Invalid username or password"
 
 def logout_user():
