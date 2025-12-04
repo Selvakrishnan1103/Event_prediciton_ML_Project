@@ -252,7 +252,6 @@ else:
     else:
         allowed_pages = ["Home", "Single Prediction", "Bulk Prediction", "Dashboard (Analytics)", "About"]
 
-e
 if "current_page" not in st.session_state:
     st.session_state.current_page = "Home"
 
