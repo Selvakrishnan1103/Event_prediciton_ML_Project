@@ -241,33 +241,25 @@ a:hover {
 </style>
 """, unsafe_allow_html=True)
 
-st.sidebar.title("Navigation")
 
+st.sidebar.title("Navigation")
 if not st.session_state.logged_in:
     st.sidebar.info("🔐 Please login to access your dashboard")
-    allowed_pages = ["Home", "Login", "Register", "About"]
+
+if not st.session_state.logged_in:
+    page = st.sidebar.selectbox("Menu", ["Home", "Login", "Register", "About"])
 else:
     if st.session_state.role == "admin":
-        allowed_pages = ["Home", "Single Prediction", "Bulk Prediction", "Dashboard (Analytics)", "Admin Panel", "About"]
+        page = st.sidebar.selectbox("Menu", ["Home", "Single Prediction", "Bulk Prediction", "Dashboard (Analytics)", "Admin Panel", "About"])
     else:
-        allowed_pages = ["Home", "Single Prediction", "Bulk Prediction", "Dashboard (Analytics)", "About"]
-
-if "current_page" not in st.session_state:
-    st.session_state.current_page = "Home"
-
-page = st.sidebar.selectbox("Menu", allowed_pages, index=allowed_pages.index(st.session_state.current_page) if st.session_state.current_page in allowed_pages else 0)
-
-st.session_state.current_page = page
-
+        page = st.sidebar.selectbox("Menu", ["Home", "Single Prediction", "Bulk Prediction", "Dashboard (Analytics)", "About"])
 
 st.sidebar.markdown("---")
 if st.session_state.logged_in:
     st.sidebar.write(f"👤 Logged in as: **{st.session_state.username}**")
     if st.sidebar.button("Logout"):
         logout_user()
-        st.session_state.current_page = "Home" 
-        st.session_state["rerun_flag"] = not st.session_state.get("rerun_flag", False)
-        st.experimental_set_query_params(dummy=datetime.now().timestamp())
+        st.experimental_rerun()
 
 if page == "Home":
     st.subheader("Welcome")
@@ -301,12 +293,9 @@ elif page == "Login":
             ok, msg = login_user(username.strip(), password)
             if ok:
                 st.success(msg)
-                st.session_state.current_page = "Home"
-                st.session_state["rerun_flag"] = not st.session_state.get("rerun_flag", False)
-                st.experimental_set_query_params(dummy=datetime.now().timestamp())
+                st.experimental_rerun()
             else:
                 st.error(msg)
-
 
 elif page == "Register":
     st.subheader("Create account")
@@ -321,16 +310,9 @@ elif page == "Register":
             else:
                 ok, m = register_user(new_user.strip(), new_pass)
                 if ok:
-                    st.success("Registration successful. You are now logged in.")
-                    st.session_state.logged_in = True
-                    st.session_state.username = new_user.strip()
-                    st.session_state.role = "user"
-                    st.session_state.current_page = "Home"  # Redirect to Home
-                    st.session_state["rerun_flag"] = not st.session_state.get("rerun_flag", False)
-                    st.experimental_set_query_params(dummy=datetime.now().timestamp())
+                    st.success("Registration successful. You can login now.")
                 else:
                     st.error(m)
-
 
 elif page == "Single Prediction":
     st.subheader("🧍 Single Prediction")
@@ -471,9 +453,7 @@ elif page == "Admin Panel":
                     f.write(sfile.getbuffer())
                 st.success("Scaler file saved.")
             st.cache_resource.clear()
-            st.session_state["rerun_flag"] = not st.session_state.get("rerun_flag", False)
-            st.experimental_set_query_params(dummy=datetime.now().timestamp())
-
+            st.experimental_rerun()
 
         st.markdown("---")
         st.markdown("### Manage users")
@@ -489,9 +469,7 @@ elif page == "Admin Panel":
                 ok, msg = register_user(new_user.strip(), new_pass, new_role)
                 if ok:
                     st.success("User created")
-                    st.session_state["rerun_flag"] = not st.session_state.get("rerun_flag", False)
-                    st.experimental_set_query_params(dummy=datetime.now().timestamp())
-
+                    st.experimental_rerun()
                 else:
                     st.error(msg)
             else:
