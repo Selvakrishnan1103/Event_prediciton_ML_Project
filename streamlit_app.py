@@ -259,7 +259,7 @@ if st.session_state.logged_in:
     st.sidebar.write(f"👤 Logged in as: **{st.session_state.username}**")
     if st.sidebar.button("Logout"):
         logout_user()
-        st.experimental_rerun()
+        st.rerun()
 
 if page == "Home":
     st.subheader("Welcome")
@@ -293,7 +293,7 @@ elif page == "Login":
             ok, msg = login_user(username.strip(), password)
             if ok:
                 st.success(msg)
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.error(msg)
 
@@ -441,19 +441,25 @@ elif page == "Admin Panel":
 
         st.markdown("### Upload new model / scaler")
         st.markdown("Upload a trained model (.pkl) and/or scaler (.pkl). Filenames will overwrite existing files.")
+        
         mfile = st.file_uploader("Upload model .pkl", type=["pkl"], key="mfile")
         sfile = st.file_uploader("Upload scaler .pkl", type=["pkl"], key="sfile")
+
         if st.button("Upload and replace files"):
             if mfile is not None:
                 with open(MODEL_PATH, "wb") as f:
                     f.write(mfile.getbuffer())
                 st.success("Model file saved.")
+
             if sfile is not None:
                 with open(SCALER_PATH, "wb") as f:
                     f.write(sfile.getbuffer())
                 st.success("Scaler file saved.")
+
+            # Clear Streamlit cache and reload model/scaler
             st.cache_resource.clear()
-            st.experimental_rerun()
+            st.rerun()
+
 
         st.markdown("---")
         st.markdown("### Manage users")
@@ -469,7 +475,7 @@ elif page == "Admin Panel":
                 ok, msg = register_user(new_user.strip(), new_pass, new_role)
                 if ok:
                     st.success("User created")
-                    st.experimental_rerun()
+                    st.rerun()
                 else:
                     st.error(msg)
             else:
